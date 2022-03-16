@@ -13,7 +13,7 @@ func main() {
 	fmt.Println(config.BdConectionStr)
 	r := router.Generate()
 
-	fmt.Println("Escutando na porta: 5000")
+	fmt.Printf("Escutando na porta: %d", config.Port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 
 }
