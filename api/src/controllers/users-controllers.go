@@ -4,36 +4,40 @@ import (
 	"api/src/banco"
 	"api/src/models"
 	"api/src/repositories"
+	"api/src/responses"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	requestBody, erro := ioutil.ReadAll(r.Body)
 	if erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
 	}
 
 	var user models.User
 	if erro = json.Unmarshal(requestBody, &user); erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusBadRequest, erro)
+		return
 	}
 
 	db, erro := banco.Connect()
 	if erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusInternalServerError, erro)
+		return
 	}
+	defer db.Close()
 
 	repo := repositories.NewUserRepository(db)
-	userID, erro := repo.Create(user)
+	user.ID, erro = repo.Create(user)
 	if erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("Id inserido: %d", userID)))
+	responses.JSON(w, http.StatusCreated, user)
 
 }
 
